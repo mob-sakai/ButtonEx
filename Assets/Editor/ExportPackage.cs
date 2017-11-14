@@ -1,12 +1,12 @@
 ﻿using UnityEditor;
 
-namespace Mobcast.Coffee
+namespace Mobcast.Coffee.Button
 {
 	public static class ExportPackage
 	{
-		const string kPackageName = "UITransition.unitypackage";
+		const string kPackageName = "ButtonEx.unitypackage";
 		static readonly string[] kAssetPathes = {
-			"Assets/Mobcast/Coffee/UITransition",
+			"Assets/Mobcast/Coffee/ButtonEx",
 		};
 
 		[MenuItem ("Export Package/" + kPackageName)]
