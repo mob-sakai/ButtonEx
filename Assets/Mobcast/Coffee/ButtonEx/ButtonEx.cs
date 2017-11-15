@@ -227,18 +227,18 @@ namespace Mobcast.Coffee.UI
 			base.OnPointerUp(eventData);
 			isPress = false;
 			timePressing = 0;
+
+#if DISALLOW_REFOCUS
+			// [再フォーカスを禁止している場合]
+			// PointerUp時にクリック可能かどうかチェックします.
+			//   * EventData がクリックと判定
+			//   * PointerEnter 後、 PointerExit されていない
+			//   * クリック連打に引っかかっておらず、クリックイベントが有効化されている
 			if (eventData.eligibleForClick && isInside && enableClick)
 			{
-				try
-				{
-					lastFrameTrigger = Time.frameCount;
-					ExecuteClick();
-				}
-				catch (System.Exception ex)
-				{
-					Debug.LogError(ex);
-				}
+				ExecuteClick();
 			}
+#endif
 		}
 
 		/// <summary>
@@ -247,6 +247,14 @@ namespace Mobcast.Coffee.UI
 		/// <param name="eventData">Event data.</param>
 		public override void OnPointerClick(PointerEventData eventData)
 		{
+#if !DISALLOW_REFOCUS
+			// [再フォーカスを許可している場合(Unityデフォルト)]
+			// PointerClick時にクリックを実行します.
+			if (enableClick)
+			{
+				ExecuteClick();
+			}
+#endif
 		}
 
 		/// <summary>
@@ -257,15 +265,7 @@ namespace Mobcast.Coffee.UI
 		{
 			if (enableClick && IsClickable())
 			{
-				try
-				{
-					lastFrameTrigger = Time.frameCount;
-					ExecuteClick();
-				}
-				catch (System.Exception ex)
-				{
-					Debug.LogError(ex);
-				}
+				ExecuteClick();
 			}
 		}
 		//==== ^ MonoBehavior Callbacks ^ ====
@@ -276,7 +276,15 @@ namespace Mobcast.Coffee.UI
 		/// </summary>
 		protected virtual void ExecuteClick()
 		{
-			base.OnPointerClick(new PointerEventData(EventSystem.current));
+			try
+			{
+				lastFrameTrigger = Time.frameCount;
+				base.OnPointerClick(new PointerEventData(EventSystem.current));
+			}
+			catch (System.Exception ex)
+			{
+				Debug.LogError(ex);
+			}
 		}
 
 		/// <summary>
@@ -332,6 +340,7 @@ namespace Mobcast.Coffee.UI
 				{
 					try
 					{
+						lastFrameTrigger = Time.frameCount;
 						foregroundButton.ExecuteClick();
 					}
 					catch (System.Exception ex)
