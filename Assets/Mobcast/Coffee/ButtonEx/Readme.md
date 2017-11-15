@@ -7,7 +7,8 @@ Button with extended feature for uGUI.
 
 ![image](https://user-images.githubusercontent.com/12690315/32772216-8a96c922-c968-11e7-9e50-edaf44f21bd9.png)
 
-* 再フォーカス時のクリック判定を無効にします.
+* 再フォーカス時のクリック判定を無効できます.
+    * スクリプト定義シンボルに `DISALLOW_REFOCUS` を追加してください.
 * エディタにて、スペースキーやエンターキーを押した時に、ボタンがクリック不可能な状態にもかかわらずクリックされる問題を修正します.
     * 実際にレイキャストを飛ばして、本当に押せるかどうかを判定します.
 * ESCキーでClickイベントを発火できます(Androidバックキー対応).
@@ -43,7 +44,19 @@ Button with extended feature for uGUI.
 
 
 
+## Demo
+
+WebGL: https://developer.cloud.unity3d.com/share/WkmVXpqkkm/
+
+
+
+
 ## Release Notes
+
+### ver.1.1.0:
+
+* Fixed: デモシーンのアスペクト比を修正
+* Changed: 再フォーカス時クリック判定について、スクリプト定義シンボル `DISALLOW_REFOCUS` で切り替えられるように変更しました.
 
 ### ver.1.0.0:
 * 再フォーカス時のクリック判定を無効にします.
