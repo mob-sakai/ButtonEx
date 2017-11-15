@@ -12,14 +12,12 @@ using UnityEditor;
 namespace Mobcast.Coffee.UI
 {
 	/// <summary>
-	/// 高機能ボタン.
-	/// 標準のボタンと比べ、以下の点が改善されています.
-	/// 1. 再フォーカス時のクリック判定を無効.
-	/// 2. Submit時、レイキャストを飛ばして、本当に押せるかどうかを判定.
-	/// 3. Click On Escape - ESCキーでクリックできるように設定可能(Androidバックキー対応).
-	/// 4. Callback Culling - Pressコールバックの追加.
-	/// 5. Callback Culling - RepeatPress(Curveによるリピートウェイト曲線対応)コールバックの追加.
-	/// 6. Callback Culling - LongPress(押下時間設定可能)コールバックの追加.
+	/// 高機能ボタン.標準のボタンと比べ、以下の点が改善されています.
+	/// 1. スクリプト定義シンボルに `DISALLOW_REFOCUS` を追加すると、再フォーカス時のクリック判定を無効にします.
+	/// 2. エディタにて、スペースキーやエンターキーを押した時に、ボタンがクリック不可能な状態にもかかわらずクリックされる問題を修正します.
+	/// 3. ESCキーでClickイベントを発火できます(Androidバックキー対応).
+	/// 4. Press, Press-Repeat, Press-Hold イベントを追加します.
+	/// 5. コンテキストメニューより、既存のButtonコンポーネントをButtonExへ変換できます.
 	/// </summary>
 
 	[AddComponentMenu("UI/ButtonEx", 30)]
@@ -29,6 +27,7 @@ namespace Mobcast.Coffee.UI
 		const float kTimeIgnoreRapidClick = 0.2f;
 
 		/// <summary>コールバック選択.</summary>
+		[System.Flags]
 		public enum EventType
 		{
 			/// <summary>クリック.</summary>
@@ -73,8 +72,6 @@ namespace Mobcast.Coffee.UI
 		/// <summary>長押しコールバック.</summary>
 		[SerializeField]
 		UnityEvent m_OnHold = new Button.ButtonClickedEvent();
-
-
 		//---- ▲ シリアライズ項目 ▲ ----
 
 
@@ -130,7 +127,7 @@ namespace Mobcast.Coffee.UI
 
 		//==== v MonoBehavior Callbacks v ====
 		/// <summary>
-		/// Raises the enable event.
+		/// This function is called when the object becomes enabled and active.
 		/// </summary>
 		protected override void OnEnable()
 		{
@@ -143,7 +140,7 @@ namespace Mobcast.Coffee.UI
 		}
 
 		/// <summary>
-		/// Raises the disable event.
+		/// This function is called when the behaviour becomes disabled () or inactive.
 		/// </summary>
 		protected override void OnDisable()
 		{
@@ -154,7 +151,7 @@ namespace Mobcast.Coffee.UI
 		}
 
 		/// <summary>
-		/// Update this instance.
+		/// Update is called every frame, if the MonoBehaviour is enabled.
 		/// </summary>
 		protected virtual void Update()
 		{
@@ -176,12 +173,13 @@ namespace Mobcast.Coffee.UI
 			else
 				timePressing = 0;
 		}
+		//==== ^ MonoBehavior Callbacks ^ ====
 
 
+		//#### v Override Button v ####
 		/// <summary>
-		/// Raises the pointer enter event.
+		/// Evaluate current state and transition to appropriate state.
 		/// </summary>
-		/// <param name="eventData">Event data.</param>
 		public override void OnPointerEnter(PointerEventData eventData)
 		{
 			base.OnPointerEnter(eventData);
@@ -190,9 +188,8 @@ namespace Mobcast.Coffee.UI
 		}
 
 		/// <summary>
-		/// Raises the pointer exit event.
+		/// Evaluate current state and transition to normal state.
 		/// </summary>
-		/// <param name="eventData">Event data.</param>
 		public override void OnPointerExit(PointerEventData eventData)
 		{
 			base.OnPointerExit(eventData);
@@ -200,9 +197,8 @@ namespace Mobcast.Coffee.UI
 		}
 
 		/// <summary>
-		/// Raises the pointer down event.
+		/// Evaluate current state and transition to pressed state.
 		/// </summary>
-		/// <param name="eventData">Event data.</param>
 		public override void OnPointerDown(PointerEventData eventData)
 		{
 			base.OnPointerDown(eventData);
@@ -219,9 +215,8 @@ namespace Mobcast.Coffee.UI
 		}
 
 		/// <summary>
-		/// Raises the pointer up event.
+		/// Evaluate eventData and transition to appropriate state.
 		/// </summary>
-		/// <param name="eventData">Event data.</param>
 		public override void OnPointerUp(PointerEventData eventData)
 		{
 			base.OnPointerUp(eventData);
@@ -242,9 +237,8 @@ namespace Mobcast.Coffee.UI
 		}
 
 		/// <summary>
-		/// Raises the pointer click event.
+		/// Registered IPointerClickHandler callback.
 		/// </summary>
-		/// <param name="eventData">Event data.</param>
 		public override void OnPointerClick(PointerEventData eventData)
 		{
 #if !DISALLOW_REFOCUS
@@ -258,21 +252,21 @@ namespace Mobcast.Coffee.UI
 		}
 
 		/// <summary>
-		/// Raises the submit event.
+		/// Registered ISubmitHandler callback.
 		/// </summary>
-		/// <param name="eventData">Event data.</param>
 		public override void OnSubmit(BaseEventData eventData)
 		{
+			// 決定ボタンが押されたとき、またはエディタでスペースキー等を入力した場合、そのボタンが押下可能な状態かどうかをチェックします.
 			if (enableClick && IsClickable())
 			{
 				ExecuteClick();
 			}
 		}
-		//==== ^ MonoBehavior Callbacks ^ ====
+		//#### ^ Override Button ^ ####
 
 
 		/// <summary>
-		/// Submitを実行します.
+		/// クリックを実行します.
 		/// </summary>
 		protected virtual void ExecuteClick()
 		{
@@ -328,13 +322,13 @@ namespace Mobcast.Coffee.UI
 			s_ActiveButtonForEscapeKey = GetActiveButtonForEscapeKey();
 #endif
 
-			// Escキー押下トリガ.
+			// Escキー押下トリガのみ判定を行います.
 			bool oldEsc = isEscapeKeyPress;
 			isEscapeKeyPress = Input.GetKeyUp(KeyCode.Escape);
 			if (!oldEsc && isEscapeKeyPress)
 			{
 				// 現在アクティブなエスケープキー対応ボタンを取得します.
-				//ボタン押下可能な場合のみ、クリックを実行する.
+				// ボタン押下可能な場合のみ、クリックを実行します.
 				ButtonEx foregroundButton = GetActiveButtonForEscapeKey();
 				if (foregroundButton)
 				{
@@ -369,7 +363,7 @@ namespace Mobcast.Coffee.UI
 		}
 
 		/// <summary>
-		/// クリック可能かどうか、レイキャストを行って判定します.
+		/// クリック可能かどうか、実際にレイキャストして判定します.
 		/// </summary>
 		bool IsClickable()
 		{
@@ -395,7 +389,7 @@ namespace Mobcast.Coffee.UI
 		}
 
 		/// <summary>
-		/// ScreenSpaceに変換します.
+		/// RectTransformの中心座標をScreenSpace座標に変換します.
 		/// </summary>
 		static Vector2 RectTransformToScreenPoint(Canvas canvas, RectTransform transform)
 		{
@@ -420,8 +414,13 @@ namespace Mobcast.Coffee.UI
 
 
 #if UNITY_EDITOR
-		void OnValidate()
+		/// <summary>
+		/// This function is called when the script is loaded or a value is changed in the inspector (Called in the editor only).
+		/// </summary>
+		protected override void OnValidate()
 		{
+			base.OnValidate();
+
 			bool isBackButton = 0 < (m_EventType & EventType.Click) && m_ClickOnEscape && enabled;
 			if (!isBackButton)
 				buttonForEscapeKeyList.Remove(this);
@@ -429,13 +428,15 @@ namespace Mobcast.Coffee.UI
 				buttonForEscapeKeyList.Add(this);
 		}
 
-		//#### v Gizmo v ####
+		//$$$$ v Gizmo v $$$$
 		static ButtonEx s_ActiveButtonForEscapeKey;
 		static GUIStyle s_Style;
-		static GUIContent s_Content = new GUIContent("[Esc]");
 		static readonly Color s_DisableColor = new Color(0.3f, 0.3f, 0.3f);
 		static readonly Color s_EnableColor = Color.white;
 
+		/// <summary>
+		/// Implement OnDrawGizmos if you want to draw gizmos that are also pickable and always drawn.
+		/// </summary>
 		void OnDrawGizmos()
 		{
 			// This button is not for Esc key.
@@ -468,9 +469,9 @@ namespace Mobcast.Coffee.UI
 			}
 			Handles.EndGUI();
 		}
-		//#### ^ Gizmo ^ ####
+		//$$$$ ^ Gizmo ^ $$$$
 
-		//==== v Context menu for editor v ====
+		//%%%% v Context menu for editor v %%%%
 		[MenuItem("CONTEXT/Button/Convert To ButtonEx", true)]
 		static bool _ConvertToButtonEx(MenuCommand command)
 		{
@@ -530,7 +531,7 @@ namespace Mobcast.Coffee.UI
 
 			(so.targetObject as MonoBehaviour).enabled = oldEnable;
 		}
-		//==== ^ Context menu for editor ^ ====
+		//%%%% ^ Context menu for editor ^ %%%%
 #endif
 	}
 }
