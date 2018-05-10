@@ -272,6 +272,31 @@ namespace Mobcast.Coffee.UI
 		{
 			try
 			{
+				if (isActiveAndEnabled) {
+					if (transition != Selectable.Transition.ColorTint) {
+						if (transition != Selectable.Transition.SpriteSwap) {
+							if (transition == Selectable.Transition.Animation) {
+								this.animator.ResetTrigger (animationTriggers.normalTrigger);
+								this.animator.ResetTrigger (animationTriggers.pressedTrigger);
+								this.animator.ResetTrigger (animationTriggers.highlightedTrigger);
+								this.animator.ResetTrigger (animationTriggers.disabledTrigger);
+								this.animator.SetTrigger ("click");
+							}
+						}
+						else {
+							if (image) {
+								this.image.overrideSprite = spriteState.disabledSprite;
+							}
+						}
+					}
+					else {
+						if (targetGraphic) {
+							targetGraphic.CrossFadeColor (Color.red, colors.fadeDuration, true, true);
+						}
+					}
+				}
+
+
 				lastFrameTrigger = Time.frameCount;
 				base.OnPointerClick(new PointerEventData(EventSystem.current));
 			}
