@@ -1,0 +1,11 @@
+{
+  "name": "ButtonEx",
+  "version": "1.1.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mob-sakai/ButtonEx.git"
+  },
+  "src": "Assets/ButtonEx",
+  "unity": "/Applications/Unity5.5.0p4/Unity5.5.0p4.app/Contents/MacOS/Unity",
+  "license": "MIT"
+}
