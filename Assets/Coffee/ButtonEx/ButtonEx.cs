@@ -49,7 +49,7 @@ namespace Mobcast.Coffee.UI
 
 		/// <summary>Escキー押下時、クリック可能ならクリックを実行するか.</summary>
 		[SerializeField]
-		bool m_Wait = false;
+		bool m_WaitClickTransition = false;
 
 		/// <summary>Escキー押下時、クリック可能ならクリックを実行するか.</summary>
 		[SerializeField]
@@ -122,7 +122,7 @@ namespace Mobcast.Coffee.UI
 
 		RectTransform m_CachedTransform;
 
-		Coroutine coExecuteClick = null;
+//		Coroutine coExecuteClick = null;
 
 		Graphic m_Graphic;
 
@@ -141,7 +141,7 @@ namespace Mobcast.Coffee.UI
 		/// </summary>
 		protected override void OnEnable()
 		{
-			coExecuteClick = null;
+//			coExecuteClick = null;
 			base.OnEnable();
 
 			m_Graphic = GetComponent<Graphic>();
@@ -155,7 +155,7 @@ namespace Mobcast.Coffee.UI
 		/// </summary>
 		protected override void OnDisable()
 		{
-			coExecuteClick = null;
+//			coExecuteClick = null;
 			base.OnDisable();
 
 			if (buttonForEscapeKeyList.Contains(this))
@@ -194,10 +194,10 @@ namespace Mobcast.Coffee.UI
 		/// </summary>
 		public override void OnPointerEnter(PointerEventData eventData)
 		{
-			if(coExecuteClick != null)
-			{
-				return;
-			}
+//			if (coExecuteClick != null)
+//			{
+//				return;
+//			}
 
 			base.OnPointerEnter(eventData);
 			if (!isPress)
@@ -209,10 +209,10 @@ namespace Mobcast.Coffee.UI
 		/// </summary>
 		public override void OnPointerExit(PointerEventData eventData)
 		{
-			if(coExecuteClick != null)
-			{
-				return;
-			}
+//			if (coExecuteClick != null)
+//			{
+//				return;
+//			}
 
 			base.OnPointerExit(eventData);
 			isInside = false;
@@ -223,10 +223,10 @@ namespace Mobcast.Coffee.UI
 		/// </summary>
 		public override void OnPointerDown(PointerEventData eventData)
 		{
-			if(coExecuteClick != null)
-			{
-				return;
-			}
+//			if (coExecuteClick != null)
+//			{
+//				return;
+//			}
 
 			base.OnPointerDown(eventData);
 			if (isActiveAndEnabled && interactable)
@@ -246,10 +246,10 @@ namespace Mobcast.Coffee.UI
 		/// </summary>
 		public override void OnPointerUp(PointerEventData eventData)
 		{
-			if(coExecuteClick != null)
-			{
-				return;
-			}
+//			if (coExecuteClick != null)
+//			{
+//				return;
+//			}
 
 			base.OnPointerUp(eventData);
 			isPress = false;
@@ -273,17 +273,17 @@ namespace Mobcast.Coffee.UI
 		/// </summary>
 		public override void OnPointerClick(PointerEventData eventData)
 		{
-			if(coExecuteClick != null)
-			{
-				return;
-			}
+//			if (coExecuteClick != null)
+//			{
+//				return;
+//			}
 
 #if !DISALLOW_REFOCUS
 			// [再フォーカスを許可している場合(Unityデフォルト)]
 			// PointerClick時にクリックを実行します.
 			if (enableClick)
 			{
-				ExecuteClickPre();
+				ExecuteClick();
 			}
 #endif
 		}
@@ -293,41 +293,72 @@ namespace Mobcast.Coffee.UI
 		/// </summary>
 		public override void OnSubmit(BaseEventData eventData)
 		{
-			if(coExecuteClick != null)
-			{
-				return;
-			}
+//			if (coExecuteClick != null)
+//			{
+//				return;
+//			}
 
 			// 決定ボタンが押されたとき、またはエディタでスペースキー等を入力した場合、そのボタンが押下可能な状態かどうかをチェックします.
 			if (enableClick && IsClickable())
 			{
-				ExecuteClickPre();
+				ExecuteClick();
 			}
 		}
 		//#### ^ Override Button ^ ####
 
-
+		/*
 		/// <summary>
 		/// クリックを実行します.
 		/// </summary>
 		protected virtual void ExecuteClickPre()
 		{
-			if (transition == Selectable.Transition.Animation)
+			if (animator && transition == Selectable.Transition.Animation)
 			{
-				this.animator.ResetTrigger(animationTriggers.normalTrigger);
-				this.animator.ResetTrigger(animationTriggers.pressedTrigger);
-				this.animator.ResetTrigger(animationTriggers.highlightedTrigger);
-				this.animator.ResetTrigger(animationTriggers.disabledTrigger);
-				this.animator.SetTrigger(hashForClicked);
+				var anim = animator;
+				anim.ResetTrigger(animationTriggers.normalTrigger);
+				anim.ResetTrigger(animationTriggers.pressedTrigger);
+				anim.ResetTrigger(animationTriggers.highlightedTrigger);
+				anim.ResetTrigger(animationTriggers.disabledTrigger);
+				anim.SetTrigger(hashForClicked);
 
-				if(m_Wait)
-				{
-					coExecuteClick = StartCoroutine(WaitEndAnimationState(hashForClicked));
-					return;
-				}
+				//if (anim.HasState(0, hashForClicked))
+//				{
+//					anim.Play(hashForClicked);
+//					anim.Update(0);
+//					if (m_WaitClickTransition)
+//					{
+//						coExecuteClick = StartCoroutine(WaitEndAnimation(anim, hashForClicked, () =>
+//								{
+//									coExecuteClick = null;
+//									ExecuteClick();
+//								}));
+//						return;
+//					}
+//				}
 			}
+//			else if (targetGraphic && transition == Selectable.Transition.ColorTint)
+//			{
+//				var graphic = targetGraphic;
+//				if (m_WaitClickTransition)
+//				{
+//					coExecuteClick = StartCoroutine(TriggerColor(graphic, Color.red, colors.highlightedColor, colors.fadeDuration, () =>
+//							{
+//								coExecuteClick = null;
+//								graphic.CrossFadeColor(colors.highlightedColor, colors.fadeDuration, true, true);
+//								ExecuteClick();
+//							}));
+//					return;
+//				}
+//				else
+//				{
+//					StartCoroutine(TriggerColor(graphic, Color.red, colors.highlightedColor, colors.fadeDuration, () =>
+//							{
+//								graphic.CrossFadeColor(colors.highlightedColor, colors.fadeDuration, true, true);
+//							}));
+//				}
+//			}
 			ExecuteClick();
-		}
+		}*/
 
 		/// <summary>
 		/// クリックを実行します.
@@ -336,6 +367,17 @@ namespace Mobcast.Coffee.UI
 		{
 			try
 			{
+				// Trigger animation.
+				var anim = animator;
+				if (anim && transition == Selectable.Transition.Animation)
+				{
+					anim.ResetTrigger(animationTriggers.normalTrigger);
+					anim.ResetTrigger(animationTriggers.pressedTrigger);
+					anim.ResetTrigger(animationTriggers.highlightedTrigger);
+					anim.ResetTrigger(animationTriggers.disabledTrigger);
+					anim.SetTrigger(hashForClicked);
+				}
+
 				lastFrameTrigger = Time.frameCount;
 				base.OnPointerClick(new PointerEventData(EventSystem.current));
 			}
@@ -344,30 +386,39 @@ namespace Mobcast.Coffee.UI
 				Debug.LogError(ex);
 			}
 		}
-
-		IEnumerator WaitEndAnimationState(int hash)
+		/*
+		public static IEnumerator WaitEndAnimation(Animator anim, int hash, System.Action callback)
 		{
-			AnimatorStateInfo info = animator.GetCurrentAnimatorStateInfo(0);
-			while (info.shortNameHash != hash)
-			{
-				yield return null;
-				info = animator.GetCurrentAnimatorStateInfo(0);
-			}
+//			anim.Play(hashForClicked);
+//			anim.Update(0);
 
-			// Wait animation end.
-			float previousTime = -1f;
-			while (info.shortNameHash == hash && !animator.IsInTransition(0) && previousTime < info.normalizedTime )
+			AnimatorStateInfo info = anim.GetCurrentAnimatorStateInfo(0);
+			while (info.shortNameHash == hash && !anim.IsInTransition(0))
 			{
-				previousTime = info.normalizedTime;
 				yield return null;
-				info = animator.GetCurrentAnimatorStateInfo(0);
+				info = anim.GetCurrentAnimatorStateInfo(0);
 			}
 
 			yield return null;
 
-			coExecuteClick = null;
-			ExecuteClick();
+			if (callback != null)
+				callback();
 		}
+
+		public IEnumerator TriggerColor(Graphic graphic, Color color1, Color color2, float duration, System.Action callback)
+		{
+			//var originColor = targetGraphic.canvasRenderer.GetColor();
+			graphic.CrossFadeColor(color1, duration, true, true);
+			yield return new WaitForSecondsRealtime(duration);
+
+//			graphic.CrossFadeColor(originColor, duration, true, true);
+//			yield return new WaitForSecondsRealtime(duration);
+
+			coExecuteClick = null;
+
+			if (callback != null)
+				callback();
+		}*/
 
 
 		/// <summary>

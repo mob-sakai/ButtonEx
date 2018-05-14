@@ -428,21 +428,11 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 253696138}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 470690668}
-        m_MethodName: SetActive
-        m_Mode: 6
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 0
+      m_Calls: []
     m_TypeName: UnityEngine.UI.Button+ButtonClickedEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
-  m_EventType: -7
+  m_EventType: 1
+  m_Wait: 1
   m_ClickOnEscape: 1
   m_PressRepeat: 1
   m_PressRepeatInterval: 1
@@ -851,6 +841,7 @@ MonoBehaviour:
     m_TypeName: UnityEngine.UI.Button+ButtonClickedEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
   m_EventType: -1
+  m_Wait: 0
   m_ClickOnEscape: 0
   m_PressRepeat: 1
   m_PressRepeatInterval: 0.5
@@ -1410,6 +1401,7 @@ MonoBehaviour:
     m_TypeName: UnityEngine.UI.Button+ButtonClickedEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
   m_EventType: -7
+  m_Wait: 0
   m_ClickOnEscape: 1
   m_PressRepeat: 1
   m_PressRepeatInterval: 1
@@ -1622,6 +1614,7 @@ MonoBehaviour:
     m_TypeName: UnityEngine.UI.Button+ButtonClickedEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
   m_EventType: 1
+  m_Wait: 0
   m_ClickOnEscape: 0
   m_PressRepeat: 0
   m_PressRepeatInterval: 1

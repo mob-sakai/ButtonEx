@@ -64,6 +64,7 @@ namespace Mobcast.CoffeeEditor.UI
 					() =>
 					{
 						EditorGUILayout.LabelField("Click", EditorStyles.boldLabel);
+						EditorGUILayout.PropertyField(serializedObject.FindProperty("m_WaitClickTransition"));
 						EditorGUILayout.PropertyField(eventProperties[EventType.Click]);
 
 						var last = GUILayoutUtility.GetLastRect();
@@ -145,7 +146,7 @@ namespace Mobcast.CoffeeEditor.UI
 			}
 
 			var selectable = target as Selectable;
-			var animator = selectable.GetComponent<Animator>();
+			var animator = selectable.animator;
 			if(animator && animator.runtimeAnimatorController)
 			{
 				var controller = animator.runtimeAnimatorController as UnityEditor.Animations.AnimatorController;
@@ -170,20 +171,23 @@ namespace Mobcast.CoffeeEditor.UI
 
 			var selectable = target as Selectable;
 			var states = controller.layers[0].stateMachine.states;
+
 			var highlightedName = selectable.animationTriggers.highlightedTrigger;
 			var highlighted = states.FirstOrDefault(x => x.state.name == highlightedName);
 			var clicked = states.FirstOrDefault(x => x.state.name == "Clicked");
 
+
 			if (highlighted.state && highlighted.state)
 			{
+				if (clicked.state.motion)
+				{
+					var so = new SerializedObject(clicked.state.motion);
+					so.FindProperty("m_AnimationClipSettings").FindPropertyRelative("m_LoopTime").boolValue = false;
+					so.ApplyModifiedProperties();
+				}
+
 				clicked.state.AddTransition(highlighted.state, true);
 			}
-//			controller.
-//			EditorUtility.SetDirty(controller);
-//			string path = AssetDatabase.GetAssetPath(controller);
-//			EditorApplication.delayCall +=()
-//				=>
-//			AssetDatabase.ImportAsset(path);
 		}
 
 		/// <summary>
