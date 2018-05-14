@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
+using System.Collections;
+using UnityEngine.Experimental.Director;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -26,6 +28,8 @@ namespace Mobcast.Coffee.UI
 		/// <summary>クリック連打制限時間.</summary>
 		const float kTimeIgnoreRapidClick = 0.2f;
 
+		public static readonly int hashForClicked = Animator.StringToHash("Clicked");
+
 		/// <summary>コールバック選択.</summary>
 		[System.Flags]
 		public enum EventType
@@ -42,7 +46,11 @@ namespace Mobcast.Coffee.UI
 		/// <summary>コールバック選択.</summary>
 		[SerializeField]
 		EventType m_EventType = EventType.Click;
-		
+
+		/// <summary>Escキー押下時、クリック可能ならクリックを実行するか.</summary>
+		[SerializeField]
+		bool m_Wait = false;
+
 		/// <summary>Escキー押下時、クリック可能ならクリックを実行するか.</summary>
 		[SerializeField]
 		bool m_ClickOnEscape = false;
@@ -60,7 +68,7 @@ namespace Mobcast.Coffee.UI
 		/// <summary>押下コールバック.</summary>
 		[SerializeField]
 		UnityEvent m_OnPress = new Button.ButtonClickedEvent();
-		
+
 		/// <summary>長押し時間のしきい値.</summary>
 		[Range(0.1f, 5.0f)]
 		[SerializeField]
@@ -114,6 +122,8 @@ namespace Mobcast.Coffee.UI
 
 		RectTransform m_CachedTransform;
 
+		Coroutine coExecuteClick = null;
+
 		Graphic m_Graphic;
 
 		Camera eventCamera { get { return (!m_Graphic || m_Graphic.canvas.renderMode == RenderMode.ScreenSpaceCamera || !m_Graphic.canvas.worldCamera) ? Camera.main : m_Graphic.canvas.worldCamera; } }
@@ -131,6 +141,7 @@ namespace Mobcast.Coffee.UI
 		/// </summary>
 		protected override void OnEnable()
 		{
+			coExecuteClick = null;
 			base.OnEnable();
 
 			m_Graphic = GetComponent<Graphic>();
@@ -144,6 +155,7 @@ namespace Mobcast.Coffee.UI
 		/// </summary>
 		protected override void OnDisable()
 		{
+			coExecuteClick = null;
 			base.OnDisable();
 
 			if (buttonForEscapeKeyList.Contains(this))
@@ -182,6 +194,11 @@ namespace Mobcast.Coffee.UI
 		/// </summary>
 		public override void OnPointerEnter(PointerEventData eventData)
 		{
+			if(coExecuteClick != null)
+			{
+				return;
+			}
+
 			base.OnPointerEnter(eventData);
 			if (!isPress)
 				isInside = true;
@@ -192,6 +209,11 @@ namespace Mobcast.Coffee.UI
 		/// </summary>
 		public override void OnPointerExit(PointerEventData eventData)
 		{
+			if(coExecuteClick != null)
+			{
+				return;
+			}
+
 			base.OnPointerExit(eventData);
 			isInside = false;
 		}
@@ -201,6 +223,11 @@ namespace Mobcast.Coffee.UI
 		/// </summary>
 		public override void OnPointerDown(PointerEventData eventData)
 		{
+			if(coExecuteClick != null)
+			{
+				return;
+			}
+
 			base.OnPointerDown(eventData);
 			if (isActiveAndEnabled && interactable)
 			{
@@ -208,7 +235,7 @@ namespace Mobcast.Coffee.UI
 				isInside = true;
 				timePressing = 0;
 				timeNextPress = timePressing + m_PressRepeatInterval;
-				
+
 				if (0 != (m_EventType & EventType.Press))
 					onPress.Invoke();
 			}
@@ -219,6 +246,11 @@ namespace Mobcast.Coffee.UI
 		/// </summary>
 		public override void OnPointerUp(PointerEventData eventData)
 		{
+			if(coExecuteClick != null)
+			{
+				return;
+			}
+
 			base.OnPointerUp(eventData);
 			isPress = false;
 			timePressing = 0;
@@ -231,7 +263,7 @@ namespace Mobcast.Coffee.UI
 			//   * クリック連打に引っかかっておらず、クリックイベントが有効化されている
 			if (eventData.eligibleForClick && isInside && enableClick)
 			{
-				ExecuteClick();
+			ExecuteClickPre();
 			}
 #endif
 		}
@@ -241,12 +273,17 @@ namespace Mobcast.Coffee.UI
 		/// </summary>
 		public override void OnPointerClick(PointerEventData eventData)
 		{
+			if(coExecuteClick != null)
+			{
+				return;
+			}
+
 #if !DISALLOW_REFOCUS
 			// [再フォーカスを許可している場合(Unityデフォルト)]
 			// PointerClick時にクリックを実行します.
 			if (enableClick)
 			{
-				ExecuteClick();
+				ExecuteClickPre();
 			}
 #endif
 		}
@@ -256,10 +293,15 @@ namespace Mobcast.Coffee.UI
 		/// </summary>
 		public override void OnSubmit(BaseEventData eventData)
 		{
+			if(coExecuteClick != null)
+			{
+				return;
+			}
+
 			// 決定ボタンが押されたとき、またはエディタでスペースキー等を入力した場合、そのボタンが押下可能な状態かどうかをチェックします.
 			if (enableClick && IsClickable())
 			{
-				ExecuteClick();
+				ExecuteClickPre();
 			}
 		}
 		//#### ^ Override Button ^ ####
@@ -268,35 +310,32 @@ namespace Mobcast.Coffee.UI
 		/// <summary>
 		/// クリックを実行します.
 		/// </summary>
+		protected virtual void ExecuteClickPre()
+		{
+			if (transition == Selectable.Transition.Animation)
+			{
+				this.animator.ResetTrigger(animationTriggers.normalTrigger);
+				this.animator.ResetTrigger(animationTriggers.pressedTrigger);
+				this.animator.ResetTrigger(animationTriggers.highlightedTrigger);
+				this.animator.ResetTrigger(animationTriggers.disabledTrigger);
+				this.animator.SetTrigger(hashForClicked);
+
+				if(m_Wait)
+				{
+					coExecuteClick = StartCoroutine(WaitEndAnimationState(hashForClicked));
+					return;
+				}
+			}
+			ExecuteClick();
+		}
+
+		/// <summary>
+		/// クリックを実行します.
+		/// </summary>
 		protected virtual void ExecuteClick()
 		{
 			try
 			{
-				if (isActiveAndEnabled) {
-					if (transition != Selectable.Transition.ColorTint) {
-						if (transition != Selectable.Transition.SpriteSwap) {
-							if (transition == Selectable.Transition.Animation) {
-								this.animator.ResetTrigger (animationTriggers.normalTrigger);
-								this.animator.ResetTrigger (animationTriggers.pressedTrigger);
-								this.animator.ResetTrigger (animationTriggers.highlightedTrigger);
-								this.animator.ResetTrigger (animationTriggers.disabledTrigger);
-								this.animator.SetTrigger ("click");
-							}
-						}
-						else {
-							if (image) {
-								this.image.overrideSprite = spriteState.disabledSprite;
-							}
-						}
-					}
-					else {
-						if (targetGraphic) {
-							targetGraphic.CrossFadeColor (Color.red, colors.fadeDuration, true, true);
-						}
-					}
-				}
-
-
 				lastFrameTrigger = Time.frameCount;
 				base.OnPointerClick(new PointerEventData(EventSystem.current));
 			}
@@ -305,6 +344,31 @@ namespace Mobcast.Coffee.UI
 				Debug.LogError(ex);
 			}
 		}
+
+		IEnumerator WaitEndAnimationState(int hash)
+		{
+			AnimatorStateInfo info = animator.GetCurrentAnimatorStateInfo(0);
+			while (info.shortNameHash != hash)
+			{
+				yield return null;
+				info = animator.GetCurrentAnimatorStateInfo(0);
+			}
+
+			// Wait animation end.
+			float previousTime = -1f;
+			while (info.shortNameHash == hash && !animator.IsInTransition(0) && previousTime < info.normalizedTime )
+			{
+				previousTime = info.normalizedTime;
+				yield return null;
+				info = animator.GetCurrentAnimatorStateInfo(0);
+			}
+
+			yield return null;
+
+			coExecuteClick = null;
+			ExecuteClick();
+		}
+
 
 		/// <summary>
 		/// ボタン押下リピートのチェックを行います.
@@ -431,14 +495,14 @@ namespace Mobcast.Coffee.UI
 				var camera = canvas.worldCamera ?? Camera.main;
 				if (!camera)
 					return Vector2.zero;
-				
+
 				transform.GetWorldCorners(s_WorldCorners);
 				return RectTransformUtility.WorldToScreenPoint(camera, (s_WorldCorners[0] + s_WorldCorners[2]) / 2);
 			}
 		}
 
 
-#if UNITY_EDITOR
+		#if UNITY_EDITOR
 		/// <summary>
 		/// This function is called when the script is loaded or a value is changed in the inspector (Called in the editor only).
 		/// </summary>
@@ -557,6 +621,6 @@ namespace Mobcast.Coffee.UI
 			(so.targetObject as MonoBehaviour).enabled = oldEnable;
 		}
 		//%%%% ^ Context menu for editor ^ %%%%
-#endif
+		#endif
 	}
 }

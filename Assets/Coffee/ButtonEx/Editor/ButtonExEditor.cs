@@ -4,9 +4,12 @@ using UnityEditor;
 using UnityEditor.UI;
 using System.Collections.Generic;
 using Mobcast.Coffee.UI;
+using UnityEditor.Animations;
+
 
 using EventType = Mobcast.Coffee.UI.ButtonEx.EventType;
 using System.Linq;
+using System.Reflection;
 
 namespace Mobcast.CoffeeEditor.UI
 {
@@ -140,10 +143,48 @@ namespace Mobcast.CoffeeEditor.UI
 					eventProperties[e].FindPropertyRelative("m_PersistentCalls").FindPropertyRelative("m_Calls").ClearArray();
 				}
 			}
+
+			var selectable = target as Selectable;
+			var animator = selectable.GetComponent<Animator>();
+			if(animator && animator.runtimeAnimatorController)
+			{
+				var controller = animator.runtimeAnimatorController as UnityEditor.Animations.AnimatorController;
+				var stateMachine = controller.layers[0].stateMachine;
+				if (stateMachine.states.All(x => x.state.name != "Clicked") && GUILayout.Button("hogehoeg!"))
+				{
+					AddClickedState(controller);
+				}
+			}
+
 			serializedObject.ApplyModifiedProperties();
+
 		}
 		//==== ^ Editor callback ^ ====
 
+
+		void AddClickedState(UnityEditor.Animations.AnimatorController controller)
+		{
+			typeof(SelectableEditor)
+				.GetMethod("GenerateTriggerableTransition", BindingFlags.NonPublic | BindingFlags.Static)
+				.Invoke(null, new object[]{ "Clicked", controller });
+
+			var selectable = target as Selectable;
+			var states = controller.layers[0].stateMachine.states;
+			var highlightedName = selectable.animationTriggers.highlightedTrigger;
+			var highlighted = states.FirstOrDefault(x => x.state.name == highlightedName);
+			var clicked = states.FirstOrDefault(x => x.state.name == "Clicked");
+
+			if (highlighted.state && highlighted.state)
+			{
+				clicked.state.AddTransition(highlighted.state, true);
+			}
+//			controller.
+//			EditorUtility.SetDirty(controller);
+//			string path = AssetDatabase.GetAssetPath(controller);
+//			EditorApplication.delayCall +=()
+//				=>
+//			AssetDatabase.ImportAsset(path);
+		}
 
 		/// <summary>
 		/// Draw custom inspector.
