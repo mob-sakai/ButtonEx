@@ -428,11 +428,22 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 253696138}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 0}
+        m_MethodName: 
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
     m_TypeName: UnityEngine.UI.Button+ButtonClickedEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
   m_EventType: 1
-  m_Wait: 1
+  m_WaitClickTransition: 1
   m_ClickOnEscape: 1
   m_PressRepeat: 1
   m_PressRepeatInterval: 1
@@ -459,7 +470,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 0.875, b: 0.875, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -841,7 +852,7 @@ MonoBehaviour:
     m_TypeName: UnityEngine.UI.Button+ButtonClickedEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
   m_EventType: -1
-  m_Wait: 0
+  m_WaitClickTransition: 0
   m_ClickOnEscape: 0
   m_PressRepeat: 1
   m_PressRepeatInterval: 0.5
@@ -1401,7 +1412,7 @@ MonoBehaviour:
     m_TypeName: UnityEngine.UI.Button+ButtonClickedEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
   m_EventType: -7
-  m_Wait: 0
+  m_WaitClickTransition: 0
   m_ClickOnEscape: 1
   m_PressRepeat: 1
   m_PressRepeatInterval: 1
@@ -1614,7 +1625,7 @@ MonoBehaviour:
     m_TypeName: UnityEngine.UI.Button+ButtonClickedEvent, UnityEngine.UI, Version=1.0.0.0,
       Culture=neutral, PublicKeyToken=null
   m_EventType: 1
-  m_Wait: 0
+  m_WaitClickTransition: 0
   m_ClickOnEscape: 0
   m_PressRepeat: 0
   m_PressRepeatInterval: 1
